@@ -1,3 +1,7 @@
 controllers:
     resource: ../src/Controller/
     type: attribute
+
+socio_api:
+    resource: App\Controller\SocioController
+    type: annotation
