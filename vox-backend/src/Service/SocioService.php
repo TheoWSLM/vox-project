@@ -44,8 +44,15 @@ class SocioService
         return $socio;
     }
 
-    public function deletarSocio($id): void
+    public function buscarSocioPorEmail(string $email): ?Socio
     {
-        $this->entityManager->remove($id);
+        $socio = $this->socioRepository->findOneBy(['email' => $email]);
+        return $socio;
+    }
+
+    public function deletarSocio(Socio $socio): void
+    {
+        $this->entityManager->remove($socio);
+        $this->entityManager->flush();
     }
 }

@@ -3,10 +3,13 @@ namespace App\Controller;
 
 use App\Entity\Socio;
 use App\Service\SocioService;
+use App\Service\EmpresaService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+
+
 
 /**
  * @Route("/api/socios", name="socio_api")
@@ -14,10 +17,12 @@ use Symfony\Component\Routing\Annotation\Route;
 class SocioController extends AbstractController
 {
     private $socioService;
+    private $empresaService;
 
-    public function __construct(SocioService $socioService)
+    public function __construct(SocioService $socioService, EmpresaService $empresaService)
     {
         $this->socioService = $socioService;
+        $this->empresaService = $empresaService;
     }
 
     /**
@@ -61,7 +66,7 @@ class SocioController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
     
-        $socio = $socioService->buscarSocioPorId($id); // Busque o sócio pelo ID
+        $socio = $socioService->buscarSocioPorId($id); 
     
         if (!$socio) {
             return $this->json(['error' => 'Sócio não encontrado'], 404);
@@ -71,7 +76,7 @@ class SocioController extends AbstractController
         $socio->setEmail($data['email'] ?? $socio->getEmail());
         $socio->setPassWord($data['passWord'] ?? $socio->getPassWord()); 
     
-        $socioService->atualizarSocio($socio); // Atualize o sócio
+        $socioService->atualizarSocio($socio);
     
         return $this->json(['socio' => $socio]);
     }
@@ -87,8 +92,30 @@ class SocioController extends AbstractController
             return $this->json(['error' => 'Sócio não encontrado'], 404);
         }
 
-        $socioService->deletarSocio($id);
+        $socioService->deletarSocio($socio);
 
         return $this->json(['message' => 'Sócio excluído com sucesso']);
     }
+/**
+ * @Route("/empresa/{socioId}/{empresaId}", methods={"POST"})
+ */
+public function adicionarEmpresa(int $socioId, int $empresaId, SocioService $socioService, EmpresaService $empresaService): JsonResponse
+{
+    $socio = $socioService->buscarSocioPorId($socioId);
+    $empresa = $empresaService->buscarEmpresaPorId($empresaId);
+
+    if (!$socio) {
+        return $this->json(['error' => 'Sócio não encontrado'], 404);
+    }
+
+    if (!$empresa) {
+        return $this->json(['error' => 'Empresa não encontrada'], 404);
+    }
+
+    $socio->addEmpresa($empresa);
+
+    $socioService->atualizarSocio($socio);
+    
+    return $this->json(['socio' => $socio]);
+}
 }
